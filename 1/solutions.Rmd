@@ -1,0 +1,19 @@
+---
+title: "Day 1"
+output: html_notebook
+---
+
+```{r}
+depths = as.numeric(readLines("input"))
+```
+
+# Problem 1
+
+```{r}
+sum(diff(depths, 1) > 0)
+```
+
+# Problem 2
+```{r}
+sum(diff(depths, 3) > 0)
+```
