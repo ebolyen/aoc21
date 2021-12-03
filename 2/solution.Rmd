@@ -1,0 +1,48 @@
+---
+title: "Day 2"
+author: "Evan Bolyen"
+date: "12/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Shared
+```{r}
+commands = read.csv('input', sep=' ', header=FALSE,
+                    col.names  = c('direction', 'amount'),
+                    colClasses = c('character', 'numeric'))
+head(commands)
+```
+```{r}
+reduce_row = function(acc, row) { do.call(row$direction, list(acc, amount=row$amount)) }
+calc_heading = function(...) {
+  result = Reduce(f=reduce_row, init=list(...),
+                  x=split(commands, seq(nrow(commands))))
+  rbind(c(result, result=result$forward * result$depth))
+}
+```
+
+# Problem 1
+```{r}
+forward = function (acc, amount) { replace(acc, 'forward', acc$forward + amount) }
+down    = function (acc, amount) { replace(acc, 'depth',   acc$depth + amount)   }
+up      = function (acc, amount) { replace(acc, 'depth',   acc$depth - amount)   }
+calc_heading(forward=0, depth=0)
+```
+
+\newpage
+
+# Problem 2
+```{r}
+forward = function (acc, amount) {
+  list(aim=acc$aim, 
+       forward=acc$forward + amount, 
+       depth=acc$depth + acc$aim * amount)
+}
+down = function (acc, amount) { replace(acc, 'aim', acc$aim + amount) }
+up   = function (acc, amount) { replace(acc, 'aim', acc$aim - amount) }
+calc_heading(forward=0, depth=0, aim=0)
+```
