@@ -1,0 +1,107 @@
+---
+title: "Day 4"
+author: "Evan Bolyen"
+date: "12/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Util
+```{r}
+read_chunk = function(conn, n=-1, until=NULL) {
+  # R is such a nightmare for this kind of thing.
+  if (!missing(until)) {
+    until = substitute(until)
+    env = new.env()
+  }
+  lines = vector('character')
+  i = 0
+  while(n != 0) {
+    n = n - 1  # iteration limit
+    i = i + 1  # observed lines
+    line = readLines(conn, n=1)
+    if (length(line) == 0) { break }
+    if (!is.null(until)) {
+      assign('line', line, envir=env)
+      if(eval(until, env)) { break }
+    }
+    lines[i] = line
+  }
+  if (length(lines) == 0) { return (NULL) }
+  textConnection(lines)
+}
+```
+\newpage
+# Shared
+```{r}
+fh = file('input', open='r')
+draws = unlist(read.csv(read_chunk(fh, until=(line == '')), header=FALSE), use.names=FALSE)
+boards = list()
+board_masks = list()
+repeat {
+  chunk = read_chunk(fh, until=(line == ''))
+  if (is.null(chunk)) { break }
+  boards = c(boards, list(as.matrix(read.table(chunk, header=FALSE))))
+}
+close(fh)
+```
+
+```{r}
+draws
+boards[[1]]
+```
+
+
+```{r}
+bingo = function(table) {
+  any(apply(table, 1, all), apply(table, 2, all))
+}
+```
+\newpage
+# Problem 1
+```{r}
+find_winner = function(draws, boards) {
+  board_masks = lapply(boards, function(x) { x == Inf })
+  for (draw in draws) {
+    for (i in seq(boards)) {
+      board_masks[[i]] = mask = board_masks[[i]] | boards[[i]] == draw
+      if (bingo(mask)) {
+        return(list(board=boards[[i]], mask=mask, board_number=i, draw=draw))
+      }
+    }
+  }
+}
+```
+
+```{r}
+winner = find_winner(draws, boards)
+c(winner, result=sum(winner$board[!winner$mask]) * winner$draw)
+```
+\newpage
+# Problem 2
+
+```{r}
+find_loser = function(draws, boards) {
+  board_masks = lapply(boards, function(x) { x == Inf })
+  to_check = seq(boards)
+  for (draw in draws) {
+    for (i in to_check) {
+      board_masks[[i]] = mask = board_masks[[i]] | boards[[i]] == draw
+      if (bingo(mask)) {
+        to_check = to_check[to_check != i]
+        result = list(board=boards[[i]], mask=mask, board_number=i, draw=draw)
+      }
+    }
+  }
+  result
+}
+```
+
+```{r}
+loser = find_loser(draws, boards)
+c(loser, result=sum(loser$board[!loser$mask]) * loser$draw)
+```
+
