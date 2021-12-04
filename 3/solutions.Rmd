@@ -1,0 +1,60 @@
+---
+title: "Day 3"
+author: "Evan Bolyen"
+date: "12/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Shared
+```{r}
+binary = as.data.frame(t(sapply(readLines("input"), function(x) { 
+  as.numeric(unlist(strsplit(x, ''))) 
+})))
+head(binary)
+```
+# Problem 1
+```{r}
+(tabled = apply(binary, 2, table))
+gamma_string = paste(apply(tabled, 2, which.max) - 1, collapse='')
+eps_string = paste(apply(tabled, 2, which.min) - 1, collapse='')
+gamma = strtoi(gamma_string, base=2)
+epsilon = strtoi(eps_string, base=2)
+data.frame(gamma_string, eps_string, gamma, epsilon, result = gamma * epsilon)
+```
+\newpage
+
+# Problem 2
+
+```{r}
+refine = function(binary, col, compare) {
+  if (nrow(binary) == 1) {
+    return(binary)
+  }
+  tabled = table(binary[,col])
+  if (tabled[1] == tabled[2]) {
+    dc = compare(c(0, 1)) - 1
+  } else {
+    dc = compare(tabled) - 1
+  }
+  binary[binary[,col] == dc,]
+}
+
+gamma_table = binary
+eps_table = binary
+for (i in seq(ncol(binary))) {
+  gamma_table = refine(gamma_table, i, which.max)
+  eps_table = refine(eps_table, i, which.min)
+}
+
+o2_string = rownames(gamma_table)
+co2_string = rownames(eps_table)
+o2 = strtoi(o2_string, base=2)
+co2 = strtoi(co2_string, base=2)
+data.frame(o2_string, co2_string, o2, co2, rating = o2*co2)
+```
+
+
